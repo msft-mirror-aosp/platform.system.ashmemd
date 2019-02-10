@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <android-base/logging.h>
 #include <android/ashmemd/IAshmemDeviceService.h>
 #include <binder/IServiceManager.h>
 
@@ -28,17 +29,23 @@ namespace ashmemd {
 
 sp<IAshmemDeviceService> getAshmemService() {
     sp<IServiceManager> sm = android::defaultServiceManager();
-    sp<IBinder> binder = sm->getService(String16("ashmem_device_service"));
+    sp<IBinder> binder = sm->checkService(String16("ashmem_device_service"));
     return interface_cast<IAshmemDeviceService>(binder);
 }
 
 extern "C" int openAshmemdFd() {
     static sp<IAshmemDeviceService> ashmemService = getAshmemService();
-    if (!ashmemService) return -1;
+    if (!ashmemService) {
+        LOG(ERROR) << "Failed to get IAshmemDeviceService.";
+        return -1;
+    }
 
     ParcelFileDescriptor fd;
     auto status = ashmemService->open(&fd);
-    if (!status.isOk()) return -1;
+    if (!status.isOk()) {
+        LOG(ERROR) << "Failed IAshmemDeviceService::open()";
+        return -1;
+    }
 
     // unique_fd is the underlying type of ParcelFileDescriptor, i.e. fd is
     // closed when it falls out of scope, so we make a dup.
