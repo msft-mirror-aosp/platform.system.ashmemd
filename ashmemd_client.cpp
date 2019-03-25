@@ -28,11 +28,6 @@ namespace android {
 namespace ashmemd {
 
 sp<IAshmemDeviceService> getAshmemService() {
-    // Calls to defaultServiceManager() crash the process if it doesn't have appropriate
-    // binder permissions. Check these permissions proactively.
-    if (access("/dev/binder", R_OK | W_OK) != 0) {
-        return nullptr;
-    }
     sp<IServiceManager> sm = android::defaultServiceManager();
     sp<IBinder> binder = sm->checkService(String16("ashmem_device_service"));
     return interface_cast<IAshmemDeviceService>(binder);
