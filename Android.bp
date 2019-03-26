@@ -57,4 +57,5 @@ cc_test {
     name: "ashmemd_test",
     defaults: ["ashmemd_defaults"],
     srcs: ["tests/ashmemd_test.cpp"],
+    test_suites: ["device-tests"],
 }
