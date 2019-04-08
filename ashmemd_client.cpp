@@ -17,6 +17,7 @@
 #include <android-base/logging.h>
 #include <android/ashmemd/IAshmemDeviceService.h>
 #include <binder/IServiceManager.h>
+#include <cutils/android_filesystem_config.h>
 
 using android::IBinder;
 using android::IServiceManager;
@@ -27,7 +28,25 @@ using android::os::ParcelFileDescriptor;
 namespace android {
 namespace ashmemd {
 
+static bool checkBinderAccess() {
+    // Isolated apps are potentially subject to seccomp policy that restricts use of access()
+    // (b/129483782). However, apps always have access to binder, so return true.
+    auto uid = getuid() % AID_USER;
+    if (AID_ISOLATED_START <= uid && uid <= AID_ISOLATED_END) {
+        return true;
+    }
+    if (access("/dev/binder", R_OK | W_OK) == 0) {
+        return true;
+    }
+    return false;
+}
+
 sp<IAshmemDeviceService> getAshmemService() {
+    // Calls to defaultServiceManager() crash the process if it doesn't have appropriate
+    // binder permissions. Check these permissions proactively.
+    if (!checkBinderAccess()) {
+        return nullptr;
+    }
     sp<IServiceManager> sm = android::defaultServiceManager();
     sp<IBinder> binder = sm->checkService(String16("ashmem_device_service"));
     return interface_cast<IAshmemDeviceService>(binder);
