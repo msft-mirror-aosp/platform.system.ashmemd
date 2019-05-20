@@ -23,10 +23,14 @@ aidl_interface {
 cc_defaults {
     name: "ashmemd_defaults",
     shared_libs: [
+        "android.system.ashmem@1.0",
         "ashmemd_aidl_interface-cpp",
         "libbase",
         "libbinder",
+        "libcutils",
         "libutils",
+        "libhidlbase",
+        "libhidltransport",
     ],
     cflags: [
         "-Wall",
@@ -39,6 +43,7 @@ cc_binary {
     defaults: ["ashmemd_defaults"],
     srcs: ["ashmemd.cpp"],
     init_rc: ["ashmemd.rc"],
+    vintf_fragments: ["android.system.ashmem@1.0.xml"],
 }
 
 // This library is used to communicate with ashmemd using dlopen/dlsym. We do
