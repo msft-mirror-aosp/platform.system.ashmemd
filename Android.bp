@@ -23,8 +23,6 @@ aidl_interface {
 cc_defaults {
     name: "ashmemd_defaults",
     shared_libs: [
-        "android.system.ashmem@1.0",
-        "ashmemd_aidl_interface-cpp",
         "libbase",
         "libbinder",
         "libcutils",
@@ -42,16 +40,37 @@ cc_binary {
     name: "ashmemd",
     defaults: ["ashmemd_defaults"],
     srcs: ["ashmemd.cpp"],
+    shared_libs: [
+        "android.system.ashmem@1.0",
+        "ashmemd_aidl_interface-cpp",
+    ],
     init_rc: ["ashmemd.rc"],
     vintf_fragments: ["android.system.ashmem@1.0.xml"],
 }
 
 // This library is used to communicate with ashmemd using dlopen/dlsym. We do
-// this to avoid shared library dependecy cycles.
+// this to avoid shared library dependency cycles.
 cc_library {
     name: "libashmemd_client",
     defaults: ["ashmemd_defaults"],
     srcs: ["ashmemd_client.cpp"],
+    shared_libs: ["ashmemd_aidl_interface-cpp"],
+    cflags: [
+        "-Wexit-time-destructors",
+        "-fno-c++-static-destructors",
+    ],
+}
+
+// This library is used to communicate with ashmemd using dlopen/dlsym. We do
+// this to avoid shared library dependency cycles.
+cc_library {
+    name: "libashmemd_hidl_client",
+    vendor: true,
+    defaults: ["ashmemd_defaults"],
+    srcs: ["ashmemd_hidl_client.cpp"],
+    shared_libs: [
+        "android.system.ashmem@1.0",
+    ],
     cflags: [
         "-Wexit-time-destructors",
         "-fno-c++-static-destructors",
@@ -62,5 +81,18 @@ cc_test {
     name: "ashmemd_test",
     defaults: ["ashmemd_defaults"],
     srcs: ["tests/ashmemd_test.cpp"],
+    shared_libs: [
+        "android.system.ashmem@1.0",
+        "ashmemd_aidl_interface-cpp",
+    ],
+    test_suites: ["device-tests"],
+}
+
+cc_test {
+    name: "ashmemd_hidl_client_test",
+    vendor: true,
+    defaults: ["ashmemd_defaults"],
+    srcs: ["tests/ashmemd_hidl_client_test.cpp"],
+    shared_libs: ["android.system.ashmem@1.0"],
     test_suites: ["device-tests"],
 }
