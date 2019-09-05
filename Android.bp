@@ -28,7 +28,6 @@ cc_defaults {
         "libcutils",
         "libutils",
         "libhidlbase",
-        "libhidltransport",
     ],
     cflags: [
         "-Wall",
