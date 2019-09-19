@@ -85,6 +85,7 @@ cc_test {
         "ashmemd_aidl_interface-cpp",
     ],
     test_suites: ["device-tests"],
+    require_root: true,
 }
 
 cc_test {
